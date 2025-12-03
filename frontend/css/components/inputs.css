@@ -1,0 +1,34 @@
+/* ===================================================================
+   Input Fields
+   =================================================================== */
+
+.input-area {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 6px 8px 6px 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.input-area:focus-within {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.input-area input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px 10px;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.input-area input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}

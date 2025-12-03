@@ -89,17 +89,43 @@ HER_V2/
 │           ├── terminal.py      # Terminal REPL
 │           └── web.py           # FastAPI + WebSocket (CORS enabled)
 │
-└── frontend/                    # Standalone Web UI
-    ├── index.html               # Main HTML
+└── frontend/                    # Standalone Web UI (Modular Architecture)
+    ├── index.html               # Shell: navigation + page container
     ├── css/
-    │   └── styles.css           # HER-inspired styling
+    │   ├── main.css             # CSS entry point (imports all)
+    │   ├── base/
+    │   │   ├── variables.css    # Design tokens (colors, spacing)
+    │   │   ├── reset.css        # CSS reset & body styles
+    │   │   └── animations.css   # Keyframe animations
+    │   ├── components/
+    │   │   ├── sidebar.css      # Left navigation
+    │   │   ├── activity-panel.css # Right activity stream
+    │   │   ├── buttons.css      # Button styles
+    │   │   ├── inputs.css       # Input fields
+    │   │   ├── icons.css        # Icon styles
+    │   │   ├── status.css       # Status indicators
+    │   │   └── layout.css       # Main layout
+    │   └── pages/
+    │       ├── chat.css         # Chat page styles
+    │       ├── memory.css       # Memory page styles
+    │       └── tools.css        # Tools page styles
     └── js/
-        ├── config.js            # API configuration
-        ├── app.js               # Main controller
-        ├── websocket.js         # WebSocket client
-        ├── chat.js              # Chat module
-        ├── sidebar.js           # Sidebar module
-        └── activity.js          # Activity stream module
+        ├── app.js               # Main controller + page lifecycle
+        ├── core/
+        │   ├── config.js        # API configuration
+        │   ├── websocket.js     # WebSocket client
+        │   ├── router.js        # Hash-based page routing
+        │   └── state.js         # Global state management
+        ├── components/
+        │   ├── sidebar.js       # Navigation component
+        │   └── activity.js      # Activity stream component
+        ├── pages/
+        │   ├── BasePage.js      # Abstract page base class
+        │   ├── ChatPage.js      # Chat page
+        │   ├── MemoryPage.js    # Memory page
+        │   └── ToolsPage.js     # Tools page
+        └── services/
+            └── api.js           # REST API service
 ```
 
 ## Team Ownership
@@ -219,8 +245,10 @@ python -m http.server 5500   # Python's built-in server
 - **Web Interface**: HER-inspired UI with real-time activity stream
   - Warm coral gradient aesthetic with glassmorphism
   - WebSocket for real-time chat and activity updates
-  - Modular JS architecture (chat, sidebar, activity modules)
-  - Left sidebar: navigation (Chat, Memory views)
+  - **Modular Page Architecture**: BasePage pattern with mount/unmount lifecycle
+  - **Three Pages**: Chat, Memory, Tools (hash-based routing: #/chat, #/memory, #/tools)
+  - **Modular CSS**: Split into base/, components/, pages/ for maintainability
+  - Left sidebar: navigation with router integration
   - Right sidebar: activity stream showing routing/planning/execution events
 - **Architecture**: Decoupled frontend/backend
   - Backend: FastAPI API server with CORS enabled

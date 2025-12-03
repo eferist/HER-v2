@@ -1,9 +1,11 @@
 /**
- * Sidebar Module
+ * Sidebar Component
  * Handles left and right sidebar navigation and toggling
  */
 
-export class SidebarModule {
+import { router } from '../core/router.js';
+
+export class SidebarComponent {
     constructor(leftSidebar, rightSidebar, leftToggle, rightToggle) {
         this.leftSidebar = leftSidebar;
         this.rightSidebar = rightSidebar;
@@ -11,7 +13,6 @@ export class SidebarModule {
         this.rightToggle = rightToggle;
         this.isLeftOpen = true;
         this.isRightOpen = false;
-        this.viewChangeCallback = null;
     }
 
     init() {
@@ -25,16 +26,20 @@ export class SidebarModule {
             this.toggleRight();
         });
 
-        // Navigation items
+        // Navigation items - use router for navigation
         const navItems = this.leftSidebar.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             item.addEventListener('click', () => {
                 const view = item.dataset.view;
                 if (view) {
-                    this._setActiveNav(item);
-                    this._notifyViewChange(view);
+                    router.navigate(view);
                 }
             });
+        });
+
+        // Listen to router changes to update active nav
+        router.onChange((newRoute) => {
+            this._updateActiveNav(newRoute);
         });
 
         // Auto-collapse on mobile
@@ -49,6 +54,10 @@ export class SidebarModule {
                 this.toggleLeft();
             }
         });
+
+        // Set initial active nav based on current route
+        const currentRoute = router.getCurrentRoute() || 'chat';
+        this._updateActiveNav(currentRoute);
     }
 
     toggleLeft() {
@@ -74,22 +83,12 @@ export class SidebarModule {
         }
     }
 
-    _setActiveNav(activeItem) {
+    _updateActiveNav(route) {
         const navItems = this.leftSidebar.querySelectorAll('.nav-item');
         navItems.forEach(item => {
-            item.classList.remove('active');
+            const view = item.dataset.view;
+            item.classList.toggle('active', view === route);
         });
-        activeItem.classList.add('active');
-    }
-
-    _notifyViewChange(view) {
-        if (this.viewChangeCallback) {
-            this.viewChangeCallback(view);
-        }
-    }
-
-    onViewChange(callback) {
-        this.viewChangeCallback = callback;
     }
 
     updateStatus(status, text) {

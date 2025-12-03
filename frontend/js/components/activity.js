@@ -1,9 +1,9 @@
 /**
- * Activity Module
+ * Activity Component
  * Handles the activity stream in the right sidebar
  */
 
-export class ActivityModule {
+export class ActivityComponent {
     constructor(containerEl) {
         this.container = containerEl;
         this.maxCards = 8;

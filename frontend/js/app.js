@@ -1,58 +1,69 @@
 /**
  * Main Application Controller
- * Orchestrates all modules and handles the app lifecycle
+ * Orchestrates all modules, routing, and page lifecycle
  */
 
-import CONFIG from './config.js';
-import { WebSocketClient } from './websocket.js';
-import { ChatModule } from './chat.js';
-import { SidebarModule } from './sidebar.js';
-import { ActivityModule } from './activity.js';
+import CONFIG from './core/config.js';
+import { WebSocketClient } from './core/websocket.js';
+import { router } from './core/router.js';
+import { ChatPage } from './pages/ChatPage.js';
+import { MemoryPage } from './pages/MemoryPage.js';
+import { ToolsPage } from './pages/ToolsPage.js';
+import { SidebarComponent } from './components/sidebar.js';
+import { ActivityComponent } from './components/activity.js';
 
 class App {
     constructor() {
-        // Use configured WebSocket URL (pointing to backend)
+        // WebSocket
         const wsUrl = CONFIG.WS_URL;
         console.log('[App] Connecting to:', wsUrl);
-
-        // Initialize modules
         this.ws = new WebSocketClient(wsUrl);
 
-        this.chat = new ChatModule(
-            document.getElementById('chatArea'),
-            document.getElementById('textInput'),
-            document.getElementById('sendBtn')
-        );
+        // Get DOM elements
+        this.pageContainer = document.getElementById('pageContainer');
+        this.inputArea = document.querySelector('.input-area');
+        this.textInput = document.getElementById('textInput');
+        this.sendBtn = document.getElementById('sendBtn');
 
-        this.sidebar = new SidebarModule(
+        // Initialize components
+        this.sidebar = new SidebarComponent(
             document.getElementById('sidebar'),
             document.getElementById('rightSidebar'),
             document.getElementById('sidebarToggle'),
             document.getElementById('rightSidebarToggle')
         );
 
-        this.activity = new ActivityModule(
+        this.activity = new ActivityComponent(
             document.getElementById('activityContainer')
         );
 
-        // View elements
-        this.views = {
-            chat: document.getElementById('chatArea'),
-            memory: document.getElementById('graphArea')
+        // Initialize pages
+        this.pages = {
+            chat: new ChatPage(this.pageContainer, this.textInput, this.sendBtn),
+            memory: new MemoryPage(this.pageContainer),
+            tools: new ToolsPage(this.pageContainer)
         };
+
+        this.currentPage = null;
     }
 
     async init() {
         console.log('[App] Initializing...');
 
-        // Initialize modules
-        this.chat.init();
+        // Initialize sidebar
         this.sidebar.init();
 
-        // Set up event handlers
+        // Setup routing
+        this._setupRouting();
+
+        // Setup WebSocket handlers
         this._setupWebSocketHandlers();
+
+        // Setup chat send handler
         this._setupChatHandlers();
-        this._setupViewHandlers();
+
+        // Initialize router (will trigger initial route)
+        router.init();
 
         // Connect to WebSocket
         try {
@@ -66,6 +77,38 @@ class App {
         }
 
         console.log('[App] Ready');
+    }
+
+    _setupRouting() {
+        // Register route handlers
+        router.register('chat', () => this._switchPage('chat'));
+        router.register('memory', () => this._switchPage('memory'));
+        router.register('tools', () => this._switchPage('tools'));
+
+        // Handle route changes for input visibility
+        router.onChange((route) => {
+            // Show input area only on chat page
+            if (this.inputArea) {
+                this.inputArea.style.display = route === 'chat' ? 'flex' : 'none';
+            }
+        });
+    }
+
+    _switchPage(pageName) {
+        // Unmount current page
+        if (this.currentPage && this.pages[this.currentPage]) {
+            this.pages[this.currentPage].onHide();
+            this.pages[this.currentPage].unmount();
+        }
+
+        // Mount new page
+        if (this.pages[pageName]) {
+            this.pages[pageName].mount();
+            this.pages[pageName].onShow();
+            this.currentPage = pageName;
+        }
+
+        console.log(`[App] Switched to ${pageName} page`);
     }
 
     _setupWebSocketHandlers() {
@@ -87,14 +130,20 @@ class App {
             }
         });
 
-        // Handle incoming messages
+        // Handle incoming messages - route to current page
         this.ws.onMessage((message) => {
-            this.chat.setWaiting(false);
+            // Always route to chat page for messages
+            if (this.pages.chat) {
+                this.pages.chat.onMessage(message);
+            }
 
-            if (message.type === 'response') {
-                this.chat.addMessage(message.content, 'ai');
-            } else if (message.type === 'error') {
-                this.chat.addMessage(message.content, 'ai');
+            // Also notify current page if different
+            if (this.currentPage !== 'chat' && this.pages[this.currentPage]) {
+                this.pages[this.currentPage].onMessage(message);
+            }
+
+            // Handle errors
+            if (message.type === 'error') {
                 this.activity.addCard('Error', 'Request failed', 'error', false);
             }
         });
@@ -107,32 +156,23 @@ class App {
             if (!this.sidebar.isRightOpen) {
                 this.sidebar.openRight();
             }
-        });
-    }
 
-    _setupChatHandlers() {
-        this.chat.onSend((content) => {
-            // Send to server
-            const sent = this.ws.sendChat(content);
-
-            if (sent) {
-                this.chat.setWaiting(true);
-            } else {
-                this.chat.addMessage('Unable to send message. Please check your connection.', 'ai');
+            // Notify current page
+            if (this.pages[this.currentPage]) {
+                this.pages[this.currentPage].onActivity(event);
             }
         });
     }
 
-    _setupViewHandlers() {
-        this.sidebar.onViewChange((view) => {
-            // Hide all views
-            Object.values(this.views).forEach(el => {
-                el.classList.add('view-hidden');
-            });
+    _setupChatHandlers() {
+        this.pages.chat.onSend((content) => {
+            // Send to server
+            const sent = this.ws.sendChat(content);
 
-            // Show selected view
-            if (this.views[view]) {
-                this.views[view].classList.remove('view-hidden');
+            if (sent) {
+                this.pages.chat.setWaiting(true);
+            } else {
+                this.pages.chat.addMessage('Unable to send message. Please check your connection.', 'ai');
             }
         });
     }

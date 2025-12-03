@@ -1,0 +1,74 @@
+/* ===================================================================
+   Buttons
+   =================================================================== */
+
+/* Toggle Buttons */
+.toggle-btn {
+    position: absolute;
+    top: 20px;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+    backdrop-filter: blur(5px);
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+#sidebarToggle {
+    left: 20px;
+}
+
+#rightSidebarToggle {
+    right: 20px;
+}
+
+/* Send Button */
+.send-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+    color: #fff;
+}
+
+.send-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(1.05);
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebarToggle {
+        left: 15px;
+        top: 15px;
+    }
+
+    #rightSidebarToggle {
+        right: 15px;
+        top: 15px;
+    }
+}

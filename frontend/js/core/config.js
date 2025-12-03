@@ -3,8 +3,6 @@
  * Centralized configuration for API endpoints
  */
 
-// Backend API configuration
-// Change these values based on your deployment
 const CONFIG = {
     // API base URL - defaults to localhost:8000 for development
     API_HOST: 'localhost',
@@ -24,6 +22,9 @@ const CONFIG = {
     ENDPOINTS: {
         STATUS: '/api/status',
         MCP_RELOAD: '/api/mcp/reload',
+        MCP_SERVERS: '/api/mcp/servers',
+        MEMORY: '/api/memory',
+        MEMORY_SEARCH: '/api/memory/search',
         MEMORY_CLEAR: '/api/memory/clear',
     }
 };

@@ -1,0 +1,110 @@
+/* ===================================================================
+   Memory Page Styles
+   =================================================================== */
+
+.memory-page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.memory-header {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.memory-search {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.memory-search::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.memory-search:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.memory-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+.memory-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.memory-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.memory-card-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.memory-card-content {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.memory-card-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+    opacity: 0.7;
+}
+
+/* Empty State */
+.memory-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.memory-empty .icon {
+    width: 48px;
+    height: 48px;
+    opacity: 0.5;
+    margin-bottom: 16px;
+}
+
+.memory-empty p {
+    font-size: 0.9rem;
+}

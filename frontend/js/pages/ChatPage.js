@@ -1,18 +1,56 @@
 /**
- * Chat Module
+ * Chat Page
  * Handles chat interface rendering and interactions
  */
 
-export class ChatModule {
-    constructor(containerEl, inputEl, sendBtnEl) {
-        this.container = containerEl;
+import { BasePage } from './BasePage.js';
+
+export class ChatPage extends BasePage {
+    constructor(container, inputEl, sendBtnEl) {
+        super(container);
         this.input = inputEl;
         this.sendBtn = sendBtnEl;
+        this.chatArea = null;
         this.isWaiting = false;
         this.onSendCallback = null;
     }
 
-    init() {
+    mount() {
+        super.mount();
+
+        // Create chat area if not exists
+        if (!this.chatArea) {
+            this.chatArea = this.createElement('div', 'chat-area');
+            this.chatArea.id = 'chatArea';
+
+            // Add welcome message
+            const welcomeMsg = this.createElement('div', 'message ai');
+            welcomeMsg.innerHTML = '<div class="message-content">Hi! I\'m your JIT assistant. How can I help you today?</div>';
+            this.chatArea.appendChild(welcomeMsg);
+        }
+
+        this.container.innerHTML = '';
+        this.container.appendChild(this.chatArea);
+
+        // Setup input handlers
+        this._setupInputHandlers();
+    }
+
+    unmount() {
+        super.unmount();
+        // Keep chatArea reference to preserve messages
+    }
+
+    _setupInputHandlers() {
+        // Remove old listeners by cloning
+        const newInput = this.input.cloneNode(true);
+        this.input.parentNode.replaceChild(newInput, this.input);
+        this.input = newInput;
+
+        const newBtn = this.sendBtn.cloneNode(true);
+        this.sendBtn.parentNode.replaceChild(newBtn, this.sendBtn);
+        this.sendBtn = newBtn;
+
         // Handle Enter key
         this.input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -55,24 +93,24 @@ export class ChatModule {
         contentEl.textContent = content;
 
         messageEl.appendChild(contentEl);
-        this.container.appendChild(messageEl);
+        this.chatArea.appendChild(messageEl);
 
         this._scrollToBottom();
     }
 
     showTypingIndicator() {
-        if (this.container.querySelector('.typing-indicator')) return;
+        if (this.chatArea.querySelector('.typing-indicator')) return;
 
         const indicator = document.createElement('div');
         indicator.className = 'typing-indicator';
         indicator.innerHTML = '<span></span><span></span><span></span>';
-        this.container.appendChild(indicator);
+        this.chatArea.appendChild(indicator);
 
         this._scrollToBottom();
     }
 
     removeTypingIndicator() {
-        const indicator = this.container.querySelector('.typing-indicator');
+        const indicator = this.chatArea?.querySelector('.typing-indicator');
         if (indicator) {
             indicator.remove();
         }
@@ -93,7 +131,9 @@ export class ChatModule {
 
     _scrollToBottom() {
         requestAnimationFrame(() => {
-            this.container.scrollTop = this.container.scrollHeight;
+            if (this.chatArea) {
+                this.chatArea.scrollTop = this.chatArea.scrollHeight;
+            }
         });
     }
 
@@ -101,11 +141,24 @@ export class ChatModule {
         this.onSendCallback = callback;
     }
 
+    // Handle incoming WebSocket messages
+    onMessage(message) {
+        this.setWaiting(false);
+
+        if (message.type === 'response') {
+            this.addMessage(message.content, 'ai');
+        } else if (message.type === 'error') {
+            this.addMessage(message.content, 'ai');
+        }
+    }
+
     clear() {
         // Keep only the welcome message
-        const messages = this.container.querySelectorAll('.message');
-        messages.forEach((msg, index) => {
-            if (index > 0) msg.remove();
-        });
+        if (this.chatArea) {
+            const messages = this.chatArea.querySelectorAll('.message');
+            messages.forEach((msg, index) => {
+                if (index > 0) msg.remove();
+            });
+        }
     }
 }
