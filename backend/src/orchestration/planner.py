@@ -1,4 +1,4 @@
-"""Planner - creates execution plans from requests."""
+"""Planner - creates dynamic workflow graphs from requests."""
 
 from agno.agent import Agent
 from agno.exceptions import ModelProviderError
@@ -12,25 +12,47 @@ def create_planner(model, available_tools: list[str], context: str = "") -> Agen
     tools_desc = "\n".join(f"- {t}" for t in available_tools) if available_tools else "No tools available"
 
     base_instructions = f"""
-        Create an execution plan for the request.
+        Create an execution plan for the request as a workflow graph.
 
         Available MCP Tools:
         {tools_desc}
 
-        Rules:
-        - SINGLE: One tool call (most common case)
-        - PARALLEL: Independent tool calls that don't depend on each other
-          Example: "Compare weather in Tokyo and NYC" → two parallel weather calls
-        - SEQUENTIAL: Chained calls where later steps need earlier results
-          Example: "Get weather then send to Telegram" → weather first, then message
+        Design a graph of subtasks using depends_on relationships:
+
+        PATTERNS:
+        - Single task: One subtask with no dependencies
+          Example: "What's the weather?" → one subtask
+
+        - Parallel tasks: Multiple subtasks with no dependencies
+          Example: "Compare weather in Tokyo and NYC" → two subtasks, both with depends_on: []
+
+        - Sequential chain: Subtasks that depend on previous ones
+          Example: "Get weather then send to Telegram" →
+            subtask1: get_weather (depends_on: [])
+            subtask2: send_message (depends_on: ["get_weather"])
+
+        - Fan-out then aggregate: Parallel tasks followed by a combining task
+          Example: "Get weather in 3 cities and summarize" →
+            subtask1: weather_city1 (depends_on: [])
+            subtask2: weather_city2 (depends_on: [])
+            subtask3: weather_city3 (depends_on: [])
+            subtask4: summarize (depends_on: ["weather_city1", "weather_city2", "weather_city3"])
+
+        - Conditional branching (optional): Use 'condition' field
+          Example: "If rainy, find indoor activities" →
+            subtask1: get_weather (depends_on: [])
+            subtask2: indoor_activities (depends_on: ["get_weather"], condition: "get_weather.result contains 'rain'")
+            subtask3: outdoor_activities (depends_on: ["get_weather"], condition: "get_weather.result contains 'sunny'")
 
         For each subtask provide:
         - id: Short identifier (verb_noun format, e.g., "get_weather")
-        - tools: List of MCP tool names needed
+        - tools: List of MCP tool names needed (can be empty for synthesis tasks)
         - instructions: Clear instructions for the agent
-        - depends_on: List of subtask IDs this depends on (for sequential)
+        - depends_on: List of subtask IDs this depends on
+        - condition: (optional) Only run if this condition is true
 
-        Keep it simple. Most requests need just SINGLE mode.
+        Keep it simple. Most requests need just ONE subtask.
+        Only create multiple subtasks when the request genuinely requires it.
         """
 
     # Prepend context if available
@@ -80,7 +102,6 @@ def plan(request: str, available_tools: list[str], context: str = "") -> Executi
     # All models failed - return simple fallback plan
     print("[Planner] All models failed, returning fallback plan")
     return ExecutionPlan(
-        mode="single",
         subtasks=[Subtask(
             id="fallback",
             tools=[],

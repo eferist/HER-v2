@@ -123,15 +123,31 @@ async def orchestrate(
 
     # Create execution plan with context
     execution_plan = plan(request, available_tools, context=planner_context)
-    print(f"  → Mode: {execution_plan.mode}")
+
+    # Infer execution pattern from graph structure
+    has_deps = any(s.depends_on for s in execution_plan.subtasks)
+    has_conditions = any(s.condition for s in execution_plan.subtasks)
+    num_subtasks = len(execution_plan.subtasks)
+
+    if num_subtasks == 1:
+        inferred_mode = "single"
+    elif has_conditions:
+        inferred_mode = "branching"
+    elif has_deps:
+        inferred_mode = "graph"
+    else:
+        inferred_mode = "parallel"
+
+    print(f"  → Pattern: {inferred_mode} ({num_subtasks} subtasks)")
     print(f"  → Subtasks:")
     subtask_info = []
     for subtask in execution_plan.subtasks:
         tools_str = ", ".join(subtask.tools) if subtask.tools else "(no specific tools)"
         deps_str = f" [depends: {', '.join(subtask.depends_on)}]" if subtask.depends_on else ""
-        print(f"      • {subtask.id}: {tools_str}{deps_str}")
-        subtask_info.append({"id": subtask.id, "tools": subtask.tools or []})
-    await emit("planned", mode=execution_plan.mode, subtasks=subtask_info)
+        cond_str = f" [if: {subtask.condition}]" if subtask.condition else ""
+        print(f"      • {subtask.id}: {tools_str}{deps_str}{cond_str}")
+        subtask_info.append({"id": subtask.id, "tools": subtask.tools or [], "depends_on": subtask.depends_on})
+    await emit("planned", mode=inferred_mode, subtasks=subtask_info)
 
     # Execute plan
     print("\n[3/3] Executing...")

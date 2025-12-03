@@ -3,6 +3,6 @@
 from .router import route
 from .planner import plan
 from .synthesizer import synthesize
-from .executor import execute
+from .graph_executor import execute
 
 __all__ = ["route", "plan", "synthesize", "execute"]

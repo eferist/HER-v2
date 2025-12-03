@@ -30,15 +30,15 @@ Startup
      │
      ▼
 ┌─────────┐
-│ Planner │  → Generate execution plan (single/parallel/sequential)
+│ Planner │  → Generate dynamic workflow graph (DAG of subtasks)
 └────┬────┘
      │
      ▼
-┌──────────┐
-│ Executor │  → Run subtasks with MCP tools
-└────┬─────┘
-     │
-     ▼
+┌───────────────┐
+│ Graph Executor│  → Walk DAG, run subtasks (auto parallel/sequential)
+└───────┬───────┘
+        │
+        ▼
 ┌─────────────┐
 │ Synthesizer │  → Combine results into final response
 └─────────────┘
@@ -73,12 +73,9 @@ HER_V2/
 │       │   └── main_loop.py     # Main orchestration loop
 │       ├── orchestration/       # AHIMSA: decision logic
 │       │   ├── router.py        # Intent classification
-│       │   ├── planner.py       # Execution planning
-│       │   ├── synthesizer.py   # Result synthesis
-│       │   └── executor/        # Execution modes
-│       │       ├── single.py
-│       │       ├── parallel.py
-│       │       └── sequential.py
+│       │   ├── planner.py       # Dynamic workflow graph generation
+│       │   ├── graph_executor.py # Unified DAG executor (replaces executor/)
+│       │   └── synthesizer.py   # Result synthesis
 │       ├── context/             # RISANG: session management
 │       │   └── session.py       # Token-based sliding window
 │       ├── tools/               # MCP tool connections
@@ -190,11 +187,18 @@ python -m http.server 5500   # Python's built-in server
 
 ## Status
 
-**Implementation: Baseline MVP + Session Memory + Decoupled Web UI**
+**Implementation: Dynamic Workflow Orchestration + Session Memory + Decoupled Web UI**
 
 - Router with fallback chain + context injection
-- Planner with fallback chain + context injection
-- Executor (single/parallel/sequential modes) with optimized tool filtering
+- **Dynamic Planner**: Generates workflow graphs (DAGs) instead of fixed modes
+  - Subtasks define dependencies via `depends_on` field
+  - Optional `condition` field for branching logic
+  - Supports: single, parallel, sequential, fan-out/fan-in, conditional branching
+- **Unified Graph Executor**: Single executor that walks any DAG
+  - Auto-detects execution pattern from graph structure
+  - Runs independent subtasks in parallel automatically
+  - Chains dependent subtasks sequentially
+  - Evaluates conditions for branching workflows
 - Synthesizer with fallback chain
 - MCP multi-server manager (4 servers: brave-search, filesystem, weather, telegram)
 - Raw MCP schemas passed to LLM (no intervention)
