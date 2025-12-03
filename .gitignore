@@ -1,0 +1,91 @@
+# ===========================
+# Python
+# ===========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environment
+venv/
+ENV/
+env/
+
+# ===========================
+# Environment & Secrets
+# ===========================
+.env
+*.env.local
+.env.*.local
+
+# ===========================
+# IDE & Editors
+# ===========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ===========================
+# OS Generated
+# ===========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===========================
+# Logs
+# ===========================
+*.log
+logs/
+backend/logs/
+
+# ===========================
+# Project Specific
+# ===========================
+# MCP config (contains API keys)
+backend/mcp_config.json
+
+# Telegram session files
+*.session
+*.session-journal
+
+# Agno framework (installed as editable, can be regenerated)
+backend/agno/
+
+# Telegram MCP server (external dependency)
+backend/telegram-mcp/
+
+# Misc artifacts
+backend/=0.5.0
+
+# ===========================
+# Claude Code
+# ===========================
+.claude/

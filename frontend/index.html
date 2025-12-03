@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JIT Orchestrator</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Left Sidebar Toggle -->
+    <button class="toggle-btn" id="sidebarToggle">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
+
+    <!-- Right Sidebar Toggle -->
+    <button class="toggle-btn" id="rightSidebarToggle">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+    </button>
+
+    <!-- Left Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="brand">JIT</div>
+        <div class="nav-item active" data-view="chat">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+            <span>Chat</span>
+        </div>
+        <div class="nav-item" data-view="memory">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span>Memory</span>
+        </div>
+
+        <!-- Status indicator -->
+        <div class="sidebar-footer">
+            <div class="status-indicator" id="statusIndicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Right Activity Sidebar -->
+    <aside class="right-sidebar" id="rightSidebar">
+        <div class="activity-header">Activity</div>
+        <div class="activity-container" id="activityContainer">
+            <!-- Activity cards injected via JS -->
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="app-container">
+            <!-- Chat View -->
+            <div class="chat-area" id="chatArea">
+                <div class="message ai">
+                    <div class="message-content">Hi! I'm your JIT assistant. How can I help you today?</div>
+                </div>
+            </div>
+
+            <!-- Memory View (hidden initially) -->
+            <div class="graph-view view-hidden" id="graphArea">
+                <div class="graph-placeholder">
+                    <svg class="icon large" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    <p>Memory visualization coming soon</p>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <input type="text" placeholder="Type a message..." id="textInput" autocomplete="off">
+                <button class="send-btn" id="sendBtn">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
