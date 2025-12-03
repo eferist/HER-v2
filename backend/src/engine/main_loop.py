@@ -1,13 +1,13 @@
 """Main orchestration loop - the heart of the system."""
 
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, Union
 
 from agno.agent import Agent
 
-from src.core.config import ROUTER_TOKEN_LIMIT, PLANNER_TOKEN_LIMIT
+from src.core.config import ROUTER_TOKEN_LIMIT, PLANNER_TOKEN_LIMIT, LONGTERM_MEMORY_LIMIT
 from src.core.models import get_model
 from src.orchestration import route, plan, execute
-from src.context import SessionMemory
+from src.context import SessionMemory, MemoryManager
 from src.tools.mcp import MCPManager, get_local_mcp_tools
 
 
@@ -16,6 +16,7 @@ async def orchestrate(
     mcp_manager: Optional[MCPManager] = None,
     mcp_command: Optional[str] = None,
     session: Optional[SessionMemory] = None,
+    memory: Optional[MemoryManager] = None,
     on_event: Optional[Callable[[dict], Any]] = None,
 ) -> str:
     """
@@ -29,12 +30,18 @@ async def orchestrate(
         request: User's request
         mcp_manager: Pre-connected MCP manager (from startup)
         mcp_command: Manual MCP server command (overrides manager)
-        session: Session memory for conversation context
+        session: Session memory for conversation context (deprecated, use memory)
+        memory: Unified memory manager (short-term + long-term)
         on_event: Optional callback for UI events (routing, planning, executing, etc.)
 
     Returns:
         Response string
     """
+    # Support both old session param and new memory param
+    if memory is None and session is not None:
+        # Backwards compatibility: wrap session in a minimal memory manager
+        memory = MemoryManager(enable_longterm=False)
+        memory.session = session
     # Helper to emit events
     async def emit(event_type: str, **data):
         if on_event:
@@ -46,12 +53,19 @@ async def orchestrate(
     print(f"Request: {request}")
     print(f"{'='*60}")
 
-    # Add user message to session
-    if session:
-        session.add_turn("user", request)
+    # Add user message to memory
+    if memory:
+        memory.add_turn("user", request)
 
-    # Get context for routing
-    router_context = session.get_context(ROUTER_TOKEN_LIMIT) if session else ""
+    # Get context for routing (includes long-term if available)
+    if memory:
+        router_context = await memory.get_context(
+            query=request,
+            session_token_limit=ROUTER_TOKEN_LIMIT,
+            longterm_limit=LONGTERM_MEMORY_LIMIT,
+        )
+    else:
+        router_context = ""
 
     # Step 1: Route
     print("\n[1/3] Routing...")
@@ -86,9 +100,9 @@ async def orchestrate(
             result = agent.run(request)
             response = result.content
 
-            # Add assistant response to session
-            if session:
-                session.add_turn("assistant", response)
+            # Add assistant response to memory
+            if memory:
+                memory.add_turn("assistant", response)
 
             return response
         except Exception as e:
@@ -99,7 +113,14 @@ async def orchestrate(
     await emit("planning", message="Creating execution plan...")
 
     # Get context for planner (more tokens than router)
-    planner_context = session.get_context(PLANNER_TOKEN_LIMIT) if session else ""
+    if memory:
+        planner_context = await memory.get_context(
+            query=request,
+            session_token_limit=PLANNER_TOKEN_LIMIT,
+            longterm_limit=LONGTERM_MEMORY_LIMIT,
+        )
+    else:
+        planner_context = ""
 
     # Determine MCP tools source
     mcp_tools = None
@@ -180,8 +201,8 @@ async def orchestrate(
             except Exception:
                 pass
 
-    # Add assistant response to session
-    if session:
-        session.add_turn("assistant", result)
+    # Add assistant response to memory
+    if memory:
+        memory.add_turn("assistant", result)
 
     return result

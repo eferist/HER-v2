@@ -72,6 +72,10 @@ backend/logs/
 # MCP config (contains API keys)
 backend/mcp_config.json
 
+# Cognee long-term memory (personal data)
+.cognee_data/
+backend/.cognee_data/
+
 # Telegram session files
 *.session
 *.session-journal
