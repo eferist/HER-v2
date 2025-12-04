@@ -4,12 +4,7 @@ import asyncio
 import os
 from typing import Optional
 
-from src.core.config import (
-    load_env,
-    LONGTERM_MEMORY_ENABLED,
-    COGNEE_DATA_DIR,
-    COGNEE_DATASET_NAME,
-)
+from src.core.config import load_env
 from src.context import MemoryManager
 from src.tools.mcp import MCPManager, load_mcp_config, connect_all_servers
 from src.engine import orchestrate
@@ -75,14 +70,9 @@ async def run_terminal_async():
     print("\n  Initializing MCP servers...")
     mcp_manager = await init_mcp()
 
-    # Initialize memory manager (session + long-term)
-    memory = MemoryManager(
-        cognee_data_dir=COGNEE_DATA_DIR,
-        cognee_dataset=COGNEE_DATASET_NAME,
-        enable_longterm=LONGTERM_MEMORY_ENABLED,
-    )
-    await memory.initialize()
-    print(f"  Memory initialized (long-term: {'enabled' if memory.longterm_available else 'disabled'})")
+    # Initialize memory manager (session only)
+    memory = MemoryManager()
+    print("  Memory initialized")
 
     print("\n  Commands:")
     print("    Type your request to get started")
@@ -91,9 +81,6 @@ async def run_terminal_async():
     print("    'mcp:status' - Show connected servers")
     print("    'memory:status' - Show memory stats")
     print("    'memory:clear' - Clear session memory")
-    print("    'memory:clear-all' - Clear all memory (session + long-term)")
-    print("    'memory:save <info>' - Save to long-term memory")
-    print("    'memory:search <query>' - Search long-term memory")
     print("    'quit' or 'exit' - Stop")
     print("="*60)
 
@@ -131,56 +118,18 @@ async def run_terminal_async():
                     mcp_manager = await init_mcp()
                     continue
 
-                # Memory clear command (session only)
+                # Memory clear command
                 if user_input.lower() == "memory:clear":
-                    memory.clear_session()
+                    memory.clear()
                     print("\n  Session memory cleared")
-                    continue
-
-                # Memory clear-all command (session + long-term)
-                if user_input.lower() == "memory:clear-all":
-                    await memory.clear_all()
-                    print("\n  All memory cleared (session + long-term)")
-                    continue
-
-                # Memory save command
-                if user_input.lower().startswith("memory:save "):
-                    info = user_input[12:].strip()
-                    if info:
-                        success = await memory.persist(info)
-                        if success:
-                            print(f"\n  Saved to long-term memory: {info[:50]}...")
-                        else:
-                            print("\n  Failed to save (long-term memory not available)")
-                    else:
-                        print("\n  Usage: memory:save <information to remember>")
-                    continue
-
-                # Memory search command
-                if user_input.lower().startswith("memory:search "):
-                    query = user_input[14:].strip()
-                    if query:
-                        results = await memory.search_longterm(query, limit=5)
-                        if results:
-                            print(f"\n  Long-term memory results for '{query}':")
-                            for i, mem in enumerate(results, 1):
-                                print(f"    {i}. {mem.content}")
-                        else:
-                            print("\n  No memories found (or long-term memory not available)")
-                    else:
-                        print("\n  Usage: memory:search <query>")
                     continue
 
                 # Memory status command
                 if user_input.lower() == "memory:status":
                     status = memory.status()
                     print(f"\n  Memory Status:")
-                    print(f"    Session:")
-                    print(f"      Turns: {status['session']['turns']}")
-                    print(f"      Tokens: {status['session']['tokens']}")
-                    print(f"    Long-term:")
-                    print(f"      Enabled: {status['longterm']['enabled']}")
-                    print(f"      Available: {status['longterm']['available']}")
+                    print(f"    Turns: {status['turns']}")
+                    print(f"    Tokens: {status['tokens']}")
                     continue
 
                 # Check for manual MCP command setting

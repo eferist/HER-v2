@@ -77,8 +77,7 @@ HER_V2/
 │       │   ├── graph_executor.py # Unified DAG executor (replaces executor/)
 │       │   └── synthesizer.py   # Result synthesis
 │       ├── context/             # RISANG: session management
-│       │   ├── session.py       # Token-based sliding window (short-term)
-│       │   ├── cognee_memory.py # Cognee knowledge graph (long-term)
+│       │   ├── session.py       # Token-based sliding window
 │       │   └── manager.py       # Unified memory interface
 │       ├── tools/               # MCP tool connections
 │       │   └── mcp/
@@ -122,7 +121,7 @@ HER_V2/
         ├── pages/
         │   ├── BasePage.js      # Abstract page base class
         │   ├── ChatPage.js      # Chat page
-        │   ├── MemoryPage.js    # Memory page
+        │   ├── MemoryPage.js    # Memory page (placeholder)
         │   └── ToolsPage.js     # Tools page
         └── services/
             └── api.js           # REST API service
@@ -135,7 +134,7 @@ HER_V2/
 | `backend/src/core/` | Everyone | Shared types, models, config (stable) |
 | `backend/src/engine/` | Everyone | Core application loop |
 | `backend/src/orchestration/` | Ahimsa | Router, Planner, Executor, Synthesizer |
-| `backend/src/context/` | Risang | Session + Long-term memory (Cognee) |
+| `backend/src/context/` | Risang | Session memory |
 | `backend/src/tools/` | You | MCP server connections |
 | `backend/src/api/` | You | API entrypoints |
 | `frontend/` | You | Web UI |
@@ -144,10 +143,10 @@ HER_V2/
 
 | Server | Status | Setup | What You Get |
 |--------|--------|-------|--------------|
-| brave-search | ✅ Enabled | API key | Web search, news, local places |
-| filesystem | ✅ Enabled | None | Read/write local files |
-| weather | ✅ Enabled | None | Weather, air quality, timezone data |
-| telegram | ⏸️ Disabled | API ID, Hash, Session | Messages, contacts, groups via Telethon |
+| brave-search | Enabled | API key | Web search, news, local places |
+| filesystem | Enabled | None | Read/write local files |
+| weather | Enabled | None | Weather, air quality, timezone data |
+| telegram | Disabled | API ID, Hash, Session | Messages, contacts, groups via Telethon |
 
 ## Example Queries
 
@@ -209,11 +208,8 @@ python -m http.server 5500   # Python's built-in server
 - Type any request to process
 - `mcp:status` - Show connected MCP servers
 - `mcp:reload` - Reload MCP configuration
-- `memory:status` - Show session + long-term memory stats
+- `memory:status` - Show session memory stats
 - `memory:clear` - Clear session memory
-- `memory:clear-all` - Clear all memory (session + long-term)
-- `memory:save <info>` - Save to long-term memory
-- `memory:search <query>` - Search long-term memory
 - `quit` / `exit` / `q` - Stop
 
 ## Status
@@ -233,20 +229,16 @@ python -m http.server 5500   # Python's built-in server
 - Synthesizer with fallback chain
 - MCP multi-server manager (4 servers: brave-search, filesystem, weather, telegram)
 - Raw MCP schemas passed to LLM (no intervention)
-- **Memory System**: Dual-layer architecture
-  - **Session memory**: Token-based sliding window (short-term)
-    - Router: 500 token context limit
-    - Planner: 1000 token context limit
-    - Enables follow-up queries ("How about Tokyo?" after weather query)
-  - **Long-term memory**: Cognee knowledge graph (persistent)
-    - Stores important information across sessions
-    - Semantic search for relevant memories
-    - Automatic context enrichment
+- **Memory System**: Session-based sliding window
+  - Token-based context management
+  - Router: 500 token context limit
+  - Planner: 1000 token context limit
+  - Enables follow-up queries ("How about Tokyo?" after weather query)
 - **Web Interface**: HER-inspired UI with real-time activity stream
   - Warm coral gradient aesthetic with glassmorphism
   - WebSocket for real-time chat and activity updates
   - **Modular Page Architecture**: BasePage pattern with mount/unmount lifecycle
-  - **Three Pages**: Chat, Memory, Tools (hash-based routing: #/chat, #/memory, #/tools)
+  - **Three Pages**: Chat, Memory (placeholder), Tools (hash-based routing: #/chat, #/memory, #/tools)
   - **Modular CSS**: Split into base/, components/, pages/ for maintainability
   - Left sidebar: navigation with router integration
   - Right sidebar: activity stream showing routing/planning/execution events

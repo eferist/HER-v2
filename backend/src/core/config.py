@@ -27,9 +27,3 @@ def load_env() -> bool:
 # Token limits for context injection
 ROUTER_TOKEN_LIMIT = 500
 PLANNER_TOKEN_LIMIT = 1000
-
-# Long-term memory (Cognee) settings
-LONGTERM_MEMORY_ENABLED = True
-COGNEE_DATA_DIR = get_project_root() / ".cognee_data"
-COGNEE_DATASET_NAME = "her_memory"
-LONGTERM_MEMORY_LIMIT = 3  # Max memories to inject into context

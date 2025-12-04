@@ -143,6 +143,18 @@ async def clear_memory():
     return {"success": True}
 
 
+@app.get("/api/memory")
+async def get_memories():
+    """Get memories (placeholder - long-term memory not configured)."""
+    return {"memories": [], "message": "Long-term memory not configured"}
+
+
+@app.get("/api/memory/search")
+async def search_memories(q: str = ""):
+    """Search memories (placeholder - long-term memory not configured)."""
+    return {"memories": [], "query": q, "message": "Long-term memory not configured"}
+
+
 # --- WebSocket Handler ---
 @app.websocket("/ws")
 async def websocket_handler(websocket: WebSocket):

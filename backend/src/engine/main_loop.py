@@ -4,7 +4,7 @@ from typing import Optional, Callable, Any, Union
 
 from agno.agent import Agent
 
-from src.core.config import ROUTER_TOKEN_LIMIT, PLANNER_TOKEN_LIMIT, LONGTERM_MEMORY_LIMIT
+from src.core.config import ROUTER_TOKEN_LIMIT, PLANNER_TOKEN_LIMIT
 from src.core.models import get_model
 from src.orchestration import route, plan, execute
 from src.context import SessionMemory, MemoryManager
@@ -31,7 +31,7 @@ async def orchestrate(
         mcp_manager: Pre-connected MCP manager (from startup)
         mcp_command: Manual MCP server command (overrides manager)
         session: Session memory for conversation context (deprecated, use memory)
-        memory: Unified memory manager (short-term + long-term)
+        memory: Unified memory manager
         on_event: Optional callback for UI events (routing, planning, executing, etc.)
 
     Returns:
@@ -40,8 +40,9 @@ async def orchestrate(
     # Support both old session param and new memory param
     if memory is None and session is not None:
         # Backwards compatibility: wrap session in a minimal memory manager
-        memory = MemoryManager(enable_longterm=False)
+        memory = MemoryManager()
         memory.session = session
+
     # Helper to emit events
     async def emit(event_type: str, **data):
         if on_event:
@@ -49,6 +50,7 @@ async def orchestrate(
                 await on_event({"event": event_type, **data})
             except Exception:
                 pass  # Don't let event errors break orchestration
+
     print(f"\n{'='*60}")
     print(f"Request: {request}")
     print(f"{'='*60}")
@@ -57,15 +59,8 @@ async def orchestrate(
     if memory:
         memory.add_turn("user", request)
 
-    # Get context for routing (includes long-term if available)
-    if memory:
-        router_context = await memory.get_context(
-            query=request,
-            session_token_limit=ROUTER_TOKEN_LIMIT,
-            longterm_limit=LONGTERM_MEMORY_LIMIT,
-        )
-    else:
-        router_context = ""
+    # Get context for routing
+    router_context = memory.get_context(ROUTER_TOKEN_LIMIT) if memory else ""
 
     # Step 1: Route
     print("\n[1/3] Routing...")
@@ -113,14 +108,7 @@ async def orchestrate(
     await emit("planning", message="Creating execution plan...")
 
     # Get context for planner (more tokens than router)
-    if memory:
-        planner_context = await memory.get_context(
-            query=request,
-            session_token_limit=PLANNER_TOKEN_LIMIT,
-            longterm_limit=LONGTERM_MEMORY_LIMIT,
-        )
-    else:
-        planner_context = ""
+    planner_context = memory.get_context(PLANNER_TOKEN_LIMIT) if memory else ""
 
     # Determine MCP tools source
     mcp_tools = None
