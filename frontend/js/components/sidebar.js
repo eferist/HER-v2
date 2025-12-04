@@ -1,29 +1,21 @@
 /**
  * Sidebar Component
- * Handles left and right sidebar navigation and toggling
+ * Handles left sidebar navigation and toggling
  */
 
 import { router } from '../core/router.js';
 
 export class SidebarComponent {
-    constructor(leftSidebar, rightSidebar, leftToggle, rightToggle) {
+    constructor(leftSidebar, leftToggle) {
         this.leftSidebar = leftSidebar;
-        this.rightSidebar = rightSidebar;
         this.leftToggle = leftToggle;
-        this.rightToggle = rightToggle;
         this.isLeftOpen = true;
-        this.isRightOpen = false;
     }
 
     init() {
         // Left sidebar toggle
         this.leftToggle.addEventListener('click', () => {
             this.toggleLeft();
-        });
-
-        // Right sidebar toggle
-        this.rightToggle.addEventListener('click', () => {
-            this.toggleRight();
         });
 
         // Navigation items - use router for navigation
@@ -63,24 +55,6 @@ export class SidebarComponent {
     toggleLeft() {
         this.isLeftOpen = !this.isLeftOpen;
         this.leftSidebar.classList.toggle('collapsed', !this.isLeftOpen);
-    }
-
-    toggleRight() {
-        this.isRightOpen = !this.isRightOpen;
-        this.rightSidebar.classList.toggle('open', this.isRightOpen);
-        document.body.classList.toggle('right-panel-open', this.isRightOpen);
-    }
-
-    openRight() {
-        if (!this.isRightOpen) {
-            this.toggleRight();
-        }
-    }
-
-    closeRight() {
-        if (this.isRightOpen) {
-            this.toggleRight();
-        }
     }
 
     _updateActiveNav(route) {

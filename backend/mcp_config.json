@@ -1,0 +1,41 @@
+{
+  "servers": {
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      },
+      "enabled": true,
+      "description": "Web search, news, local places"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "enabled": true,
+      "description": "Read/write local files"
+    },
+    "weather": {
+      "command": "python",
+      "args": ["-m", "mcp_weather_server"],
+      "enabled": true,
+      "description": "Weather, air quality, timezone data"
+    },
+    "telegram": {
+      "command": "uv",
+      "args": ["--directory", "telegram-mcp", "run", "main.py"],
+      "env": {
+        "TELEGRAM_API_ID": "${TELEGRAM_API_ID}",
+        "TELEGRAM_API_HASH": "${TELEGRAM_API_HASH}",
+        "TELEGRAM_SESSION_STRING": "${TELEGRAM_SESSION_STRING}"
+      },
+      "enabled": true,
+      "description": "Telegram messages, contacts, groups via Telethon"
+    }
+  },
+  "settings": {
+    "connect_on_startup": true,
+    "skip_failed_servers": true,
+    "connection_timeout": 30
+  }
+}

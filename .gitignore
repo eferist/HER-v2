@@ -69,8 +69,6 @@ backend/logs/
 # ===========================
 # Project Specific
 # ===========================
-# MCP config (contains API keys)
-backend/mcp_config.json
 
 # Cognee long-term memory (personal data)
 .cognee_data/
@@ -88,6 +86,11 @@ backend/telegram-mcp/
 
 # Misc artifacts
 backend/=0.5.0
+
+# ===========================
+# External Dependencies
+# ===========================
+cluster/
 
 # ===========================
 # Claude Code

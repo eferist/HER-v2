@@ -8,17 +8,6 @@
     justify-content: center;
     align-items: center;
     position: relative;
-    transition: margin-right 0.4s ease;
-}
-
-body.right-panel-open .main-content {
-    margin-right: 0;
-}
-
-@media (min-width: 1200px) {
-    body.right-panel-open .main-content {
-        margin-right: 100px;
-    }
 }
 
 .app-container {

@@ -10,7 +10,6 @@ import { ChatPage } from './pages/ChatPage.js';
 import { MemoryPage } from './pages/MemoryPage.js';
 import { ToolsPage } from './pages/ToolsPage.js';
 import { SidebarComponent } from './components/sidebar.js';
-import { ActivityComponent } from './components/activity.js';
 
 class App {
     constructor() {
@@ -28,13 +27,7 @@ class App {
         // Initialize components
         this.sidebar = new SidebarComponent(
             document.getElementById('sidebar'),
-            document.getElementById('rightSidebar'),
-            document.getElementById('sidebarToggle'),
-            document.getElementById('rightSidebarToggle')
-        );
-
-        this.activity = new ActivityComponent(
-            document.getElementById('activityContainer')
+            document.getElementById('sidebarToggle')
         );
 
         // Initialize pages
@@ -69,11 +62,9 @@ class App {
         try {
             await this.ws.connect();
             this.sidebar.updateStatus('connected', 'Connected');
-            this.activity.addCard('Ready', 'Connected to server', 'complete', false);
         } catch (error) {
             console.error('[App] WebSocket connection failed:', error);
             this.sidebar.updateStatus('error', 'Connection failed');
-            this.activity.addCard('Error', 'Failed to connect', 'error', false);
         }
 
         console.log('[App] Ready');
@@ -141,23 +132,10 @@ class App {
             if (this.currentPage !== 'chat' && this.pages[this.currentPage]) {
                 this.pages[this.currentPage].onMessage(message);
             }
-
-            // Handle errors
-            if (message.type === 'error') {
-                this.activity.addCard('Error', 'Request failed', 'error', false);
-            }
         });
 
-        // Handle activity events
+        // Handle activity events - notify current page
         this.ws.onActivity((event) => {
-            this.activity.handleEvent(event);
-
-            // Auto-open activity panel on first activity
-            if (!this.sidebar.isRightOpen) {
-                this.sidebar.openRight();
-            }
-
-            // Notify current page
             if (this.pages[this.currentPage]) {
                 this.pages[this.currentPage].onActivity(event);
             }

@@ -98,7 +98,6 @@ HER_V2/
     │   │   └── animations.css   # Keyframe animations
     │   ├── components/
     │   │   ├── sidebar.css      # Left navigation
-    │   │   ├── activity-panel.css # Right activity stream
     │   │   ├── buttons.css      # Button styles
     │   │   ├── inputs.css       # Input fields
     │   │   ├── icons.css        # Icon styles
@@ -116,8 +115,7 @@ HER_V2/
         │   ├── router.js        # Hash-based page routing
         │   └── state.js         # Global state management
         ├── components/
-        │   ├── sidebar.js       # Navigation component
-        │   └── activity.js      # Activity stream component
+        │   └── sidebar.js       # Navigation component
         ├── pages/
         │   ├── BasePage.js      # Abstract page base class
         │   ├── ChatPage.js      # Chat page
@@ -234,14 +232,14 @@ python -m http.server 5500   # Python's built-in server
   - Router: 500 token context limit
   - Planner: 1000 token context limit
   - Enables follow-up queries ("How about Tokyo?" after weather query)
-- **Web Interface**: HER-inspired UI with real-time activity stream
+- **Web Interface**: HER-inspired UI
   - Warm coral gradient aesthetic with glassmorphism
-  - WebSocket for real-time chat and activity updates
+  - WebSocket for real-time chat updates
   - **Modular Page Architecture**: BasePage pattern with mount/unmount lifecycle
   - **Three Pages**: Chat, Memory (placeholder), Tools (hash-based routing: #/chat, #/memory, #/tools)
+  - **Tools Page**: 3-column responsive grid showing MCP servers with status, description, tool count
   - **Modular CSS**: Split into base/, components/, pages/ for maintainability
   - Left sidebar: navigation with router integration
-  - Right sidebar: activity stream showing routing/planning/execution events
 - **Architecture**: Decoupled frontend/backend
   - Backend: FastAPI API server with CORS enabled
   - Frontend: Standalone static files (can be served separately)

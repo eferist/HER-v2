@@ -1,5 +1,5 @@
 /* ===================================================================
-   Tools Page Styles
+   Tools Page Styles - MCP Server Grid
    =================================================================== */
 
 .tools-page {
@@ -10,14 +10,14 @@
 }
 
 .tools-header {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .tools-title {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .tools-subtitle {
@@ -25,108 +25,163 @@
     color: var(--text-muted);
 }
 
-.tools-list {
+/* Grid Layout */
+.tools-grid {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
     overflow-y: auto;
     padding-bottom: 20px;
+    align-content: start;
 }
 
-.tool-server {
+/* Card Styles */
+.tool-card {
     background: var(--card-bg);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     animation: fadeIn 0.4s ease-out forwards;
 }
 
-.tool-server-header {
+.tool-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Header */
+.tool-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: background 0.3s;
 }
 
-.tool-server-header:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.tool-server-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.tool-server-status {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--status-connected);
-}
-
-.tool-server-status.disabled {
-    background: var(--status-error);
-}
-
-.tool-server-name {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: #fff;
-}
-
-.tool-server-toggle {
+.tool-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: var(--transition-smooth);
-}
-
-.tool-server-toggle:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.tool-server-tools {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px 16px;
-    display: none;
-}
-
-.tool-server.expanded .tool-server-tools {
-    display: block;
-}
-
-.tool-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 0;
+    justify-content: center;
+}
+
+.tool-card-icon .icon {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Status Indicator */
+.tool-card-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.75rem;
+}
+
+.tool-card-status .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.tool-card-status .status-label {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.tool-card-status.connected .status-dot {
+    background: var(--status-connected);
+    box-shadow: 0 0 8px var(--status-connected);
+}
+
+.tool-card-status.connected .status-label {
+    color: var(--status-connected);
+}
+
+.tool-card-status.error .status-dot {
+    background: var(--status-error);
+    box-shadow: 0 0 8px var(--status-error);
+}
+
+.tool-card-status.error .status-label {
+    color: var(--status-error);
+}
+
+.tool-card-status.disabled .status-dot {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.tool-card-status.disabled .status-label {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Card Body */
+.tool-card-body {
+    flex: 1;
+}
+
+.tool-card-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.tool-card-desc {
     font-size: 0.85rem;
     color: var(--text-muted);
+    line-height: 1.4;
 }
 
-.tool-item::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
+/* Card Footer */
+.tool-card-footer {
+    display: flex;
+    align-items: center;
+}
+
+.tool-card-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.badge-count {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.badge-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
 }
 
 /* Empty State */
 .tools-empty {
-    flex: 1;
+    grid-column: 1 / -1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 60px 20px;
     color: var(--text-muted);
     text-align: center;
 }
@@ -134,10 +189,94 @@
 .tools-empty .icon {
     width: 48px;
     height: 48px;
-    opacity: 0.5;
+    opacity: 0.4;
     margin-bottom: 16px;
 }
 
 .tools-empty p {
     font-size: 0.9rem;
+}
+
+/* Skeleton Loading */
+.tool-card.skeleton {
+    pointer-events: none;
+}
+
+.skeleton-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-status {
+    width: 80px;
+    height: 24px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text {
+    border-radius: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-title {
+    width: 70%;
+    height: 18px;
+    margin-bottom: 8px;
+}
+
+.skeleton-desc {
+    width: 100%;
+    height: 14px;
+}
+
+.skeleton-badge {
+    width: 70px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+    .tools-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+    .tools-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .tool-card {
+        padding: 16px;
+    }
+
+    .tool-card-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .tool-card-icon .icon {
+        width: 20px;
+        height: 20px;
+    }
 }

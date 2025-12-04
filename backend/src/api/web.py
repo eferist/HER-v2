@@ -155,6 +155,35 @@ async def search_memories(q: str = ""):
     return {"memories": [], "query": q, "message": "Long-term memory not configured"}
 
 
+@app.get("/api/mcp/servers")
+async def get_mcp_servers():
+    """Get list of MCP servers with their tools."""
+    configs, _ = load_mcp_config()
+
+    servers = []
+    for config in configs:
+        server_info = {
+            "name": config.name,
+            "enabled": config.enabled,
+            "description": config.description,
+            "connected": False,
+            "tools": [],
+            "tool_count": 0,
+        }
+
+        # Check if server is connected and get tools
+        if mcp_manager and config.name in mcp_manager.servers:
+            mcp = mcp_manager.servers[config.name]
+            server_info["connected"] = True
+            if hasattr(mcp, 'functions') and mcp.functions:
+                server_info["tools"] = list(mcp.functions.keys())
+                server_info["tool_count"] = len(mcp.functions)
+
+        servers.append(server_info)
+
+    return {"servers": servers}
+
+
 # --- WebSocket Handler ---
 @app.websocket("/ws")
 async def websocket_handler(websocket: WebSocket):
@@ -227,10 +256,11 @@ def run_web(host: str = "0.0.0.0", port: int = 8000):
     print("="*60)
     print(f"\n  Starting server at http://localhost:{port}")
     print("  API endpoints:")
-    print("    GET  /api/status      - System status")
-    print("    POST /api/mcp/reload  - Reload MCP config")
+    print("    GET  /api/status       - System status")
+    print("    GET  /api/mcp/servers  - List MCP servers")
+    print("    POST /api/mcp/reload   - Reload MCP config")
     print("    POST /api/memory/clear - Clear session")
-    print("    WS   /ws              - WebSocket chat")
+    print("    WS   /ws               - WebSocket chat")
     print("\n  CORS enabled for frontend development")
     print("  Press Ctrl+C to stop\n")
 
