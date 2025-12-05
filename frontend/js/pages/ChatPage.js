@@ -11,6 +11,7 @@ export class ChatPage extends BasePage {
         this.input = inputEl;
         this.sendBtn = sendBtnEl;
         this.chatArea = null;
+        this.activityFeed = null;
         this.isWaiting = false;
         this.onSendCallback = null;
     }
@@ -144,11 +145,98 @@ export class ChatPage extends BasePage {
     // Handle incoming WebSocket messages
     onMessage(message) {
         this.setWaiting(false);
+        this.clearActivityFeed();
 
         if (message.type === 'response') {
             this.addMessage(message.content, 'ai');
         } else if (message.type === 'error') {
             this.addMessage(message.content, 'ai');
+        }
+    }
+
+    // Handle activity events from backend
+    onActivity(event) {
+        if (!event || !event.event) return;
+
+        const message = this._formatActivityMessage(event);
+        if (message) {
+            this._addActivityItem(message);
+        }
+
+        // Clear on complete
+        if (event.event === 'complete') {
+            setTimeout(() => this.clearActivityFeed(), 500);
+        }
+    }
+
+    _formatActivityMessage(event) {
+        switch (event.event) {
+            case 'thinking':
+                return 'Processing...';
+            case 'routing':
+                return 'Analyzing request...';
+            case 'routed':
+                if (event.path === 'direct') {
+                    return 'Route: direct response';
+                }
+                return `Route: using tools`;
+            case 'responding':
+                return 'Generating response...';
+            case 'planning':
+                return 'Planning workflow...';
+            case 'planned':
+                const count = event.subtasks?.length || 0;
+                const tools = event.subtasks?.flatMap(s => s.tools || []).filter(Boolean);
+                const toolStr = tools?.length ? ` (${tools.slice(0, 3).join(', ')}${tools.length > 3 ? '...' : ''})` : '';
+                return `Plan: ${count} subtask${count !== 1 ? 's' : ''}${toolStr}`;
+            case 'executing':
+                return 'Executing...';
+            case 'subtask_start':
+                return `Running: ${event.id || 'subtask'}`;
+            case 'subtask_complete':
+                return `Done: ${event.id || 'subtask'}`;
+            case 'complete':
+                return 'Complete!';
+            default:
+                return event.message || null;
+        }
+    }
+
+    _addActivityItem(text) {
+        // Create feed if not exists
+        if (!this.activityFeed) {
+            this.activityFeed = document.createElement('div');
+            this.activityFeed.className = 'activity-feed';
+        }
+
+        // Ensure feed is in DOM (before typing indicator)
+        const typingIndicator = this.chatArea?.querySelector('.typing-indicator');
+        if (this.activityFeed.parentNode !== this.chatArea) {
+            if (typingIndicator) {
+                this.chatArea.insertBefore(this.activityFeed, typingIndicator);
+            } else {
+                this.chatArea?.appendChild(this.activityFeed);
+            }
+        }
+
+        // Mark previous items as completed
+        const prevItems = this.activityFeed.querySelectorAll('.activity-item');
+        prevItems.forEach(item => item.classList.add('completed'));
+
+        // Add new item
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+        item.textContent = text;
+        this.activityFeed.appendChild(item);
+
+        this._scrollToBottom();
+    }
+
+    clearActivityFeed() {
+        if (this.activityFeed) {
+            this.activityFeed.innerHTML = '';
+            this.activityFeed.remove();
+            this.activityFeed = null;
         }
     }
 

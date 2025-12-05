@@ -139,24 +139,46 @@ HER_V2/
 
 ## MCP Servers
 
+### Core Servers (Enabled)
 | Server | Status | Setup | What You Get |
 |--------|--------|-------|--------------|
 | brave-search | Enabled | API key | Web search, news, local places |
 | filesystem | Enabled | None | Read/write local files |
 | weather | Enabled | None | Weather, air quality, timezone data |
-| telegram | Disabled | API ID, Hash, Session | Messages, contacts, groups via Telethon |
+| telegram | Enabled | API ID, Hash, Session | Messages, contacts, groups via Telethon |
+
+### Productivity Servers (Disabled - Requires Setup)
+| Server | Status | Setup | What You Get |
+|--------|--------|-------|--------------|
+| google-workspace | Disabled | OAuth 2.0 | Gmail, Calendar, Drive, Docs, Sheets, Tasks |
+| todoist | Disabled | API key | Task management with projects and labels |
+| notion | Disabled | API key | Pages, databases, workspaces |
+| slack | Disabled | Bot token | Channels, messages, threads |
+| memory | Disabled | None | Knowledge graph persistent memory |
 
 ## Example Queries
 
 ```
+# Search & Info
 > Search for Python tutorials              # brave-search
 > List all files in docs folder            # filesystem
-> Read the contents of README.md           # filesystem
-> Search for latest news about AI          # brave-search
 > What's the weather in Tokyo?             # weather
-> Get air quality in Jakarta               # weather
-> Search my Telegram contacts for John     # telegram
+
+# Communication
 > Get my unread Telegram messages          # telegram
+> Check unread messages in #general        # slack
+> Send "Build complete" to #dev            # slack
+
+# Productivity
+> Check my unread emails                   # google-workspace
+> What meetings do I have tomorrow?        # google-workspace
+> Show my tasks for today                  # todoist
+> Add task: Review PR #123                 # todoist
+> Search Notion for meeting notes          # notion
+
+# Memory
+> Remember: project deadline is Dec 15     # memory
+> What do you know about the deadline?     # memory
 ```
 
 ## LLM Configuration
@@ -175,13 +197,19 @@ HER_V2/
 GOOGLE_API_KEY=<gemini-key>
 OPENROUTER_API_KEY=<openrouter-key>
 
-# MCP Servers
+# Core MCP Servers
 BRAVE_API_KEY=<brave-search-api-key>
-
-# Telegram (disabled by default - requires setup)
 TELEGRAM_API_ID=<from my.telegram.org/apps>
 TELEGRAM_API_HASH=<from my.telegram.org/apps>
 TELEGRAM_SESSION_STRING=<generated via session_string_generator.py>
+
+# Productivity MCP Servers (optional)
+GOOGLE_CLIENT_ID=<from console.cloud.google.com>
+GOOGLE_CLIENT_SECRET=<from console.cloud.google.com>
+TODOIST_API_TOKEN=<from todoist.com/app/settings/integrations>
+NOTION_API_KEY=<from notion.so/my-integrations>
+SLACK_BOT_TOKEN=<xoxb-from api.slack.com/apps>
+SLACK_TEAM_ID=<T-team-id>
 ```
 
 ## Running
@@ -225,7 +253,7 @@ python -m http.server 5500   # Python's built-in server
   - Chains dependent subtasks sequentially
   - Evaluates conditions for branching workflows
 - Synthesizer with fallback chain
-- MCP multi-server manager (4 servers: brave-search, filesystem, weather, telegram)
+- MCP multi-server manager (9 servers: 4 core + 5 productivity)
 - Raw MCP schemas passed to LLM (no intervention)
 - **Memory System**: Session-based sliding window
   - Token-based context management
@@ -238,8 +266,16 @@ python -m http.server 5500   # Python's built-in server
   - **Modular Page Architecture**: BasePage pattern with mount/unmount lifecycle
   - **Three Pages**: Chat, Memory (placeholder), Tools (hash-based routing: #/chat, #/memory, #/tools)
   - **Tools Page**: 3-column responsive grid showing MCP servers with status, description, tool count
+    - **Configuration UI**: Click gear icon to configure API keys directly in browser
+    - Shows "Needs Setup" status with missing env vars listed
+    - Modal with form fields, help links, password toggle
+    - Saves to `.env` and enables server automatically
   - **Modular CSS**: Split into base/, components/, pages/ for maintainability
   - Left sidebar: navigation with router integration
+  - **Activity Feed**: Real-time status updates in chat showing background processes
+    - Displays: routing, planning, executing stages
+    - Shows subtask start/complete events during execution
+    - Auto-clears when response arrives
 - **Architecture**: Decoupled frontend/backend
   - Backend: FastAPI API server with CORS enabled
   - Frontend: Standalone static files (can be served separately)

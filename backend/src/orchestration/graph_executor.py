@@ -9,7 +9,7 @@ not from a predefined "mode" field.
 """
 
 import asyncio
-from typing import List, Dict, Optional, Set
+from typing import List, Dict, Optional, Set, Callable, Any
 from agno.agent import Agent
 from agno.exceptions import ModelProviderError
 from agno.tools.mcp import MCPTools
@@ -177,7 +177,8 @@ async def execute(
     plan: ExecutionPlan,
     request: str,
     mcp_tools: List[MCPTools],
-    mcp_manager: Optional[MCPManager] = None
+    mcp_manager: Optional[MCPManager] = None,
+    on_event: Optional[Callable[[dict], Any]] = None
 ) -> str:
     """Execute a workflow graph.
 
@@ -190,7 +191,22 @@ async def execute(
     - Multiple subtasks with no deps → parallel execution
     - Subtasks with deps → sequential/chained execution
     - Mix of above → complex DAG execution
+
+    Args:
+        plan: The execution plan with subtasks
+        request: Original user request
+        mcp_tools: List of MCP tool connections
+        mcp_manager: Optional MCP manager for tool filtering
+        on_event: Optional callback for UI events
     """
+    # Helper to emit events
+    async def emit(event_type: str, **data):
+        if on_event:
+            try:
+                await on_event({"event": event_type, **data})
+            except Exception:
+                pass  # Don't let event errors break execution
+
     # Normalize tools to list
     if not isinstance(mcp_tools, list):
         mcp_tools = [mcp_tools]
@@ -217,12 +233,18 @@ async def execute(
             # Single task - run directly
             subtask = ready[0]
             print(f"  → Executing: {subtask.id}")
+            await emit("subtask_start", id=subtask.id, tools=subtask.tools or [])
             result = await execute_subtask(subtask, request, mcp_tools, results, mcp_manager)
             results[subtask.id] = result
             completed.add(subtask.id)
+            await emit("subtask_complete", id=subtask.id)
         else:
             # Multiple ready - run in parallel
             print(f"  → Executing in parallel: {[s.id for s in ready]}")
+            # Emit start for all parallel tasks
+            for subtask in ready:
+                await emit("subtask_start", id=subtask.id, tools=subtask.tools or [])
+
             tasks = [
                 execute_subtask(subtask, request, mcp_tools, results, mcp_manager)
                 for subtask in ready
@@ -235,6 +257,7 @@ async def execute(
                 else:
                     results[subtask.id] = result
                 completed.add(subtask.id)
+                await emit("subtask_complete", id=subtask.id)
 
     # Determine final output
     if len(results) == 0:

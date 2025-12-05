@@ -11,6 +11,7 @@ import uvicorn
 from src.core.config import load_env
 from src.context import SessionMemory
 from src.tools.mcp import MCPManager, load_mcp_config, connect_all_servers
+from src.tools.mcp.server_metadata import get_server_metadata, get_missing_env_vars
 from src.engine import orchestrate
 
 
@@ -157,11 +158,14 @@ async def search_memories(q: str = ""):
 
 @app.get("/api/mcp/servers")
 async def get_mcp_servers():
-    """Get list of MCP servers with their tools."""
+    """Get list of MCP servers with their tools and config metadata."""
     configs, _ = load_mcp_config()
 
     servers = []
     for config in configs:
+        metadata = get_server_metadata(config.name)
+        missing = get_missing_env_vars(config.name)
+
         server_info = {
             "name": config.name,
             "enabled": config.enabled,
@@ -169,6 +173,14 @@ async def get_mcp_servers():
             "connected": False,
             "tools": [],
             "tool_count": 0,
+            # New metadata fields
+            "display_name": metadata.get("display_name", config.name),
+            "category": metadata.get("category", "other"),
+            "env_vars": metadata.get("env_vars", []),
+            "missing_vars": missing,
+            "is_configured": len(missing) == 0,
+            "auth_type": metadata.get("auth_type"),
+            "setup_note": metadata.get("setup_note")
         }
 
         # Check if server is connected and get tools
@@ -182,6 +194,109 @@ async def get_mcp_servers():
         servers.append(server_info)
 
     return {"servers": servers}
+
+
+@app.get("/api/mcp/servers/{server_name}/metadata")
+async def get_server_config_metadata(server_name: str):
+    """Get configuration metadata for a server."""
+    metadata = get_server_metadata(server_name)
+    missing = get_missing_env_vars(server_name)
+
+    return {
+        "server": server_name,
+        "metadata": metadata,
+        "missing_vars": missing,
+        "is_configured": len(missing) == 0
+    }
+
+
+@app.post("/api/mcp/servers/{server_name}/configure")
+async def configure_server(server_name: str, config: dict):
+    """
+    Configure a server's environment variables and optionally enable it.
+
+    Body: {
+        "env_vars": {"VAR_NAME": "value", ...},
+        "enable": true
+    }
+    """
+    from pathlib import Path
+    from dotenv import load_dotenv
+
+    env_vars = config.get("env_vars", {})
+    enable = config.get("enable", False)
+
+    # 1. Update .env file
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    env_lines = []
+    existing_vars = set()
+
+    if env_path.exists():
+        with open(env_path, "r") as f:
+            for line in f:
+                # Check if this line sets a var we're updating
+                found = False
+                for var_name in env_vars:
+                    if line.startswith(f"{var_name}="):
+                        env_lines.append(f"{var_name}={env_vars[var_name]}\n")
+                        existing_vars.add(var_name)
+                        found = True
+                        break
+                if not found:
+                    env_lines.append(line)
+
+    # Add new vars that weren't in the file
+    for var_name, value in env_vars.items():
+        if var_name not in existing_vars:
+            env_lines.append(f"{var_name}={value}\n")
+
+    # Write back
+    with open(env_path, "w") as f:
+        f.writelines(env_lines)
+
+    # 2. Update mcp_config.json if enabling
+    if enable:
+        config_path = Path(__file__).parent.parent.parent / "mcp_config.json"
+        with open(config_path, "r") as f:
+            mcp_config = json.load(f)
+
+        if server_name in mcp_config.get("servers", {}):
+            mcp_config["servers"][server_name]["enabled"] = True
+
+            with open(config_path, "w") as f:
+                json.dump(mcp_config, f, indent=2)
+
+    # 3. Reload environment
+    load_dotenv(env_path, override=True)
+
+    return {
+        "success": True,
+        "server": server_name,
+        "enabled": enable,
+        "message": f"Configuration saved. {'Server enabled.' if enable else 'Run mcp:reload to apply.'}"
+    }
+
+
+@app.post("/api/mcp/servers/{server_name}/toggle")
+async def toggle_server(server_name: str, body: dict):
+    """Enable or disable a server."""
+    from pathlib import Path
+
+    enabled = body.get("enabled", False)
+
+    config_path = Path(__file__).parent.parent.parent / "mcp_config.json"
+    with open(config_path, "r") as f:
+        mcp_config = json.load(f)
+
+    if server_name in mcp_config.get("servers", {}):
+        mcp_config["servers"][server_name]["enabled"] = enabled
+
+        with open(config_path, "w") as f:
+            json.dump(mcp_config, f, indent=2)
+
+        return {"success": True, "server": server_name, "enabled": enabled}
+
+    return {"success": False, "error": "Server not found"}
 
 
 # --- WebSocket Handler ---

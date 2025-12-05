@@ -27,3 +27,58 @@
     background: var(--status-error);
     animation: none;
 }
+
+/* ===================================================================
+   Activity Feed - Real-time status updates in chat
+   =================================================================== */
+
+.activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 16px;
+    margin-bottom: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    animation: fadeIn 0.2s ease-in;
+}
+
+.activity-feed:empty {
+    display: none;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.8;
+}
+
+.activity-item:last-child {
+    opacity: 1;
+    color: var(--accent);
+}
+
+.activity-item::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.activity-item:last-child::before {
+    background: var(--accent);
+    animation: pulse 1.5s infinite;
+}
+
+.activity-item.completed::before {
+    background: var(--status-connected);
+    animation: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

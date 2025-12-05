@@ -2,7 +2,10 @@
   "servers": {
     "brave-search": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
       "env": {
         "BRAVE_API_KEY": "${BRAVE_API_KEY}"
       },
@@ -11,19 +14,31 @@
     },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "."
+      ],
       "enabled": true,
       "description": "Read/write local files"
     },
     "weather": {
       "command": "python",
-      "args": ["-m", "mcp_weather_server"],
+      "args": [
+        "-m",
+        "mcp_weather_server"
+      ],
       "enabled": true,
       "description": "Weather, air quality, timezone data"
     },
     "telegram": {
       "command": "uv",
-      "args": ["--directory", "telegram-mcp", "run", "main.py"],
+      "args": [
+        "--directory",
+        "telegram-mcp",
+        "run",
+        "main.py"
+      ],
       "env": {
         "TELEGRAM_API_ID": "${TELEGRAM_API_ID}",
         "TELEGRAM_API_HASH": "${TELEGRAM_API_HASH}",
@@ -31,6 +46,65 @@
       },
       "enabled": true,
       "description": "Telegram messages, contacts, groups via Telethon"
+    },
+    "google-workspace": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic/google-workspace-mcp"
+      ],
+      "env": {
+        "GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+        "GOOGLE_CLIENT_SECRET": "${GOOGLE_CLIENT_SECRET}"
+      },
+      "enabled": true,
+      "description": "Gmail, Calendar, Drive, Docs, Sheets, Tasks"
+    },
+    "todoist": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic/todoist-mcp-server"
+      ],
+      "env": {
+        "TODOIST_API_TOKEN": "${TODOIST_API_TOKEN}"
+      },
+      "enabled": false,
+      "description": "Task management with projects and labels"
+    },
+    "notion": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@notionhq/notion-mcp-server"
+      ],
+      "env": {
+        "NOTION_API_KEY": "${NOTION_API_KEY}"
+      },
+      "enabled": false,
+      "description": "Notion pages, databases, workspaces"
+    },
+    "slack": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-slack"
+      ],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+        "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
+      },
+      "enabled": false,
+      "description": "Slack channels, messages, threads"
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "enabled": false,
+      "description": "Knowledge graph persistent memory"
     }
   },
   "settings": {

@@ -164,11 +164,11 @@ async def orchestrate(
     try:
         if manual_mcp:
             # Use manual MCP (no manager for filtering)
-            result = await execute(execution_plan, request, manual_mcp)
+            result = await execute(execution_plan, request, manual_mcp, on_event=on_event)
         elif mcp_manager and mcp_manager.servers:
             # Pass all servers + manager for optimized tool filtering per subtask
             all_servers = list(mcp_manager.servers.values())
-            result = await execute(execution_plan, request, all_servers, mcp_manager)
+            result = await execute(execution_plan, request, all_servers, mcp_manager, on_event=on_event)
         else:
             # No MCP tools - use direct agent
             model = get_model("agent")
